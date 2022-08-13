@@ -4,6 +4,33 @@ using ll = long long;
 #define rep(i,n) for (int i = 0; i < (n); ++i)
 const int dx[] = {1, 0};
 const int dy[] = {0, 1};
+const int dX[] = {1, 0, -1, 0};
+const int dY[] = {0, 1, 0, -1};
+
+struct UnionFind {
+private:
+    vector<int> par;
+public:
+    UnionFind(int n) {
+        par.resize(n);
+        for (int i = 0; i < n; i++) par[i] = i;
+    }
+    bool same(int x, int y) {
+        return root(x) == root(y);
+    }
+    void unite(int x, int y) {
+        x = root(x);
+        y = root(y);
+        if (x == y) return;
+        par[x] = y;
+    }
+private:
+    int root(int x) {
+        if (par[x] == x) return x;
+        else return par[x] = root(par[x]);
+    }
+};
+
 
 int N, K;
 vector<vector<int>> board;
