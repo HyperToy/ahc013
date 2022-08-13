@@ -33,12 +33,17 @@ struct Solver {
 
     int N, K;
     int action_count_limit;
+    vector<vector<int>> field;
+    vector<vector<int>> connected;
+
     random_device rd;
     mt19937 engine{rd()};
-    vector<vector<int>> field;
 
     Solver(int N, int K, const vector<vector<int>> &field) :
-        N(N), K(K), action_count_limit(K * 100), field(field) {}
+        N(N), K(K), action_count_limit(K * 100), field(field) 
+    {
+        connected.resize(N, vector<int>(N, 0));
+    }
 
     bool inside (int &x, int &y) {
         return 0 <= x && x < N && 0 <= y && y < N;
@@ -95,6 +100,8 @@ struct Solver {
         int ny = y + dy[dir];
         while (inside(nx, ny)) {
             if (field[nx][ny] == field[x][y]) {
+                connected[x][y]++;
+                connected[nx][ny]++;
                 return ConnectAction(x, y, nx, ny);
             }
             assert(field[nx][ny] == 0);
@@ -126,10 +133,88 @@ struct Solver {
         return connects;
     }
 
+    bool search_line(int &x, int &y, int &dir) {
+        int nx = x + dx[dir];
+        int ny = y + dy[dir];
+        while (inside(nx, ny)) {
+            if (field[nx][ny] == -field[x][y]) {
+                return true;
+            } else if (field[nx][ny] != 0) {
+                return false;
+            }
+            nx += dx[dir];
+            ny += dy[dir];
+        }
+        return false;
+    }
+
+    vector<MoveAction> move_to(int &x, int &y, int &dir) {
+        vector<MoveAction> moves;
+        int nx = x + dx[dir];
+        int ny = y + dy[dir];
+        while (inside(nx, ny)) {
+            if (field[nx][ny] == -field[x][y]) {
+                field[nx][ny] = field[x][y];
+                field[x][y] = 0;
+                moves.emplace_back(nx - dx[dir], ny - dy[dir], nx, ny);
+                action_count_limit--;
+                return moves;
+            }
+            assert(field[nx][ny] == 0);
+            moves.emplace_back(nx - dx[dir], ny - dy[dir], nx, ny);
+            action_count_limit--;
+            nx += dx[dir];
+            ny += dy[dir];
+        }
+        assert(false);
+    }
+
+    void reset_field() {
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                connected[i][j] = 0;
+                if (field[i][j] < 0) {
+                    field[i][j] = 0;
+                }
+            }
+        }
+    }
+
     Result solve() {
         vector<MoveAction> moves = move();
-        vector<ConnectAction> connexts = connect();
-        return Result(moves, connexts);
+        vector<ConnectAction> connects = connect();
+
+        int _ = 5;
+        while (_--) {
+            // 繋がっていないコンピュータの上下左右に、
+            // 同じ種類のコンピュータを繋いでいる線があればそこまで移動する
+            for (int i = 0; i < N; i++) {
+                for (int j = 0; j < N; j++) {
+                    if (action_count_limit < 10) break;
+                    if (field[i][j] <= 0 || connected[i][j] > 0) continue;
+                    for (int dir = 0; dir < 4; dir++) {
+                        if (can_connect(i, j, dir)) {
+                            connects.push_back(line_fill(i, j, dir));
+                            action_count_limit--;
+                            break;
+                        }
+                        if (search_line(i, j, dir)) {
+                            for (MoveAction m : move_to(i, j, dir)) {
+                                moves.push_back(m);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // リセットして繋ぎ直す。
+            action_count_limit += connects.size();
+            reset_field();
+            connects = connect();
+        }
+
+        return Result(moves, connects);
     }
 };
 
