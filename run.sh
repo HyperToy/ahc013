@@ -17,4 +17,4 @@ do
 done
 
 
-../summary < score.txt
+../summary < score.txt >> ../summary.txt

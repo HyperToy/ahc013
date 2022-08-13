@@ -18,7 +18,7 @@ int main() {
         kind[K][1] += x;
     }
     rep(k,4) {
-        printf("K = %d   : %d\n", k + 2, kind[k][1] / kind[k][0]);
+        cout << "K = " << k + 2 << " : " << kind[k][1] / kind[k][0] << endl;
     }
-    printf("total   : %d\naverage : %d\n", score, score / N);
+    cout << "total : " << score / N << " (" << score * 50 / N << ")" << endl;
 }
