@@ -45,10 +45,10 @@ vector<con> cons;
 void input() {
     cin >> N >> K;
     board = vector<vector<int>>(N, vector<int>(N));
-    rep(i,N) rep(j,N) {
-        char c;
-        cin >> c;
-        board[i][j] = c - '0';
+    rep(i,N) {
+        string s;
+        cin >> s;
+        rep(j,N) board[i][j] = s[j] - '0';
     }
 }
 
