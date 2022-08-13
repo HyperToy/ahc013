@@ -40,6 +40,10 @@ struct Solver {
     Solver(int N, int K, const vector<vector<int>> &field) :
         N(N), K(K), action_count_limit(K * 100), field(field) {}
 
+    bool inside (int &x, int &y) {
+        return 0 <= x && x < N && 0 <= y && y < N;
+    }
+
     bool can_move(int &x, int &y, int &dir) {
         int nx = x + dx[dir];
         int ny = y + dy[dir];
@@ -69,10 +73,6 @@ struct Solver {
         }
 
         return moves;
-    }
-
-    bool inside (int &x, int &y) {
-        return 0 <= x && x < N && 0 <= y && y < N;
     }
 
     bool can_connect(int &x, int &y, int &dir) {
