@@ -114,17 +114,19 @@ struct Solver {
 
     vector<ConnectAction> connect() {
         vector<ConnectAction> connects;
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                if (field[i][j] <= 0) {
-                    continue;
-                }
-                for (int dir = 0; dir < 2; dir++) { // ↓ と → の2方向を見る
-                    if (can_connect(i, j, dir)) {
-                        connects.push_back(line_fill(i, j, dir));
-                        action_count_limit--;
-                        if (action_count_limit <= 0) {
-                            return connects;
+        for (int k = 2; k <= K; k++) {
+            for (int i = 0; i < N; i++) {
+                for (int j = 0; j < N; j++) {
+                    if (field[i][j] != k) {
+                        continue;
+                    }
+                    for (int dir = 0; dir < 2; dir++) { // ↓ と → の2方向を見る
+                        if (can_connect(i, j, dir)) {
+                            connects.push_back(line_fill(i, j, dir));
+                            action_count_limit--;
+                            if (action_count_limit <= 0) {
+                                return connects;
+                            }
                         }
                     }
                 }
@@ -184,35 +186,35 @@ struct Solver {
         vector<MoveAction> moves = move();
         vector<ConnectAction> connects = connect();
 
-        int _ = 5;
-        while (_--) {
-            // 繋がっていないコンピュータの上下左右に、
-            // 同じ種類のコンピュータを繋いでいる線があればそこまで移動する
-            for (int i = 0; i < N; i++) {
-                for (int j = 0; j < N; j++) {
-                    if (action_count_limit < 10) break;
-                    if (field[i][j] <= 0 || connected[i][j] > 0) continue;
-                    for (int dir = 0; dir < 4; dir++) {
-                        if (can_connect(i, j, dir)) {
-                            connects.push_back(line_fill(i, j, dir));
-                            action_count_limit--;
-                            break;
-                        }
-                        if (search_line(i, j, dir)) {
-                            for (MoveAction m : move_to(i, j, dir)) {
-                                moves.push_back(m);
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
+        // int _ = 5;
+        // while (_--) {
+        //     // 繋がっていないコンピュータの上下左右に、
+        //     // 同じ種類のコンピュータを繋いでいる線があればそこまで移動する
+        //     for (int i = 0; i < N; i++) {
+        //         for (int j = 0; j < N; j++) {
+        //             if (action_count_limit < 10) break;
+        //             if (field[i][j] <= 0 || connected[i][j] > 0) continue;
+        //             for (int dir = 0; dir < 4; dir++) {
+        //                 if (can_connect(i, j, dir)) {
+        //                     connects.push_back(line_fill(i, j, dir));
+        //                     action_count_limit--;
+        //                     break;
+        //                 }
+        //                 if (search_line(i, j, dir)) {
+        //                     for (MoveAction m : move_to(i, j, dir)) {
+        //                         moves.push_back(m);
+        //                     }
+        //                     break;
+        //                 }
+        //             }
+        //         }
+        //     }
 
-            // リセットして繋ぎ直す。
-            action_count_limit += connects.size();
-            reset_field();
-            connects = connect();
-        }
+        //     // リセットして繋ぎ直す。
+        //     action_count_limit += connects.size();
+        //     reset_field();
+        //     connects = connect();
+        // }
 
         return Result(moves, connects);
     }
