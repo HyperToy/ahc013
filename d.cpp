@@ -81,6 +81,13 @@ struct ConnectAction {
         c1_row(c1_row), c1_col(c1_col), c2_row(c2_row), c2_col(c2_col) {}
 };
 
+struct Result {
+    vector<MoveAction> moves;
+    vector<ConnectAction> connects;
+    int score;
+    Result(int score, const vector<MoveAction> &move, const vector<ConnectAction> &con) : score(score), moves(move), connects(con) {}
+};
+
 struct Solver {
     static constexpr int dx[4] = {1, 0, -1, 0};
     static constexpr int dy[4] = {0, 1, 0, -1};
@@ -89,9 +96,9 @@ struct Solver {
     int action_count_limit;
     vector<vector<int>> field;
     vector<MoveAction> moves;
+    vector<ConnectAction> connects;
     vector<vector<pair<int, int>>> computers;
     vector<vector<int>> index;
-    vector<ConnectAction> connects;
 
     int score;
     UnionFind uf;
@@ -226,10 +233,10 @@ struct Solver {
         connect();
     }
 
-    int solve() {
+    Result solve() {
         move(6 + engine() % 5);
         reconnect();
-        return score;
+        return Result(score, moves, connects);
     }
 };
 
@@ -245,14 +252,14 @@ void input(int &N, int &K, vector<vector<int>> &field) {
     }
 }
 
-void print_answer(Solver &sol) {
-    cout << sol.moves.size() << endl;
-    for (MoveAction m : sol.moves) {
+void print_answer(Result &res) {
+    cout << res.moves.size() << endl;
+    for (MoveAction m : res.moves) {
         cout << m.before_row << " " << m.before_col << " "
             << m.after_row << " " << m.after_col << endl;
     }
-    cout << sol.connects.size() << endl;
-    for (ConnectAction c : sol.connects) {
+    cout << res.connects.size() << endl;
+    for (ConnectAction c : res.connects) {
         cout << c.c1_row << " " << c.c1_col << " "
             << c.c2_row << " " << c.c2_col << endl;
     }
@@ -263,16 +270,26 @@ void solve() {
     vector<vector<int>> field;
     input(N, K, field);
 
-    Solver s(N, K, field);
-    int score = s.solve();
+    Solver best_sol(N, K, field);
+    Result best_res = best_sol.solve();
 
     Timer timer;
+    int loop_count = 0;
+    int update_count = 0;
+    while (timer.get() < TIME_LIMIT) {
+        loop_count++;
+        Solver sol(N, K, field);
+        Result res = sol.solve();
+        if (res.score > best_res.score) {
+            update_count++;
+            best_res = res;
+        }
+    }
 
-    // while (timer.get() < TIME_LIMIT) {
-
-    // }
-
-    print_answer(s);
+    print_answer(best_res);
+    cerr << "Score  : " << best_res.score << endl;
+    cerr << "Loop   : " << loop_count << endl;
+    cerr << "Update : " << update_count << endl;
 }
 
 int main(){
