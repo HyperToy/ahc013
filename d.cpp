@@ -9,6 +9,7 @@ struct Timer {
     void reset() { start = clock(); }
     double get() { return (double)(clock() - start) / CLOCKS_PER_SEC; }
 };
+Timer timer;
 
 struct UnionFind {
     int h, w;
@@ -234,8 +235,30 @@ struct Solver {
     }
 
     Result solve() {
-        move(6 + engine() % 5);
-        reconnect();
+        while (action_count_limit > 5 && timer.get() < TIME_LIMIT) {
+            int pre_score = score;
+
+            int backup_action_count_limit = action_count_limit;
+            vector<vector<int>> backup_field = field;
+            vector<MoveAction> backup_moves = moves;
+            vector<ConnectAction> backup_connects = connects;
+            vector<vector<pair<int, int>>> backup_computers = computers;
+            vector<vector<int>> backup_index = index;
+
+            move(min(5 + engine() % (K * 5), action_count_limit - 2));
+            reconnect();
+
+            if (score < pre_score) {
+                score = pre_score;
+
+                action_count_limit = backup_action_count_limit;
+                field = backup_field;
+                moves = backup_moves;
+                connects = backup_connects;
+                computers = backup_computers;
+                index = backup_index;
+            }
+        }
         return Result(score, moves, connects);
     }
 };
@@ -273,7 +296,7 @@ void solve() {
     Solver best_sol(N, K, field);
     Result best_res = best_sol.solve();
 
-    Timer timer;
+    timer.reset();
     int loop_count = 0;
     int update_count = 0;
     while (timer.get() < TIME_LIMIT) {
@@ -287,9 +310,11 @@ void solve() {
     }
 
     print_answer(best_res);
+    cerr << "N, K   : " << N << ", " << K << endl;
     cerr << "Score  : " << best_res.score << endl;
     cerr << "Loop   : " << loop_count << endl;
     cerr << "Update : " << update_count << endl;
+    cerr << "Time   : " << timer.get() << endl;
 }
 
 int main(){
