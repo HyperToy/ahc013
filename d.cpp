@@ -89,6 +89,8 @@ struct Solver {
     int action_count_limit;
     vector<vector<int>> field;
     vector<MoveAction> moves;
+    vector<vector<pair<int, int>>> computers;
+    vector<vector<int>> index;
     vector<ConnectAction> connects;
 
     int score;
@@ -100,12 +102,59 @@ struct Solver {
     Solver(int N, int K, vector<vector<int>> field) :
         N(N), K(K), action_count_limit(K * 100), field(field), uf(UnionFind(N, N))
     {
+        computers.resize(K);
+        index = vector<vector<int>>(N, vector<int>(N, -1));
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                if (field[i][j] > 0) {
+                    int k = field[i][j] - 1;
+                    index[i][j] = computers[k].size();
+                    computers[k].emplace_back(i, j);
+                }
+            }
+        }
         score = 0;
         connect();
     }
 
     bool inside (int &x, int &y) {
         return 0 <= x && x < N && 0 <= y && y < N;
+    }
+
+    bool can_move(int &x, int &y, int &dir) {
+        int nx = x + dx[dir];
+        int ny = y + dy[dir];
+        if (inside(nx, ny)) {
+            return field[nx][ny] == 0 || field[nx][ny] == -field[x][y];
+        }
+        return false;
+    }
+    void move(int move_limit = -1) {
+        if (move_limit < 0) {
+            move_limit = K * 50;
+        }
+        vector<int> random_dir = {0, 1, 2, 3};
+        int move_cnt = 0;
+        while (move_cnt < move_limit) {
+            int k = engine() % K;
+            int l = engine() % 100;
+            int x = computers[k][l].first;
+            int y = computers[k][l].second;
+            shuffle(random_dir.begin(), random_dir.end(), engine);
+            for (int dir = 0; dir < 4; dir++) {
+                if (field[x][y] > 0 && can_move(x, y, random_dir[dir])) {
+                    int nx = x + dx[random_dir[dir]];
+                    int ny = y + dy[random_dir[dir]];
+                    swap(field[x][y], field[nx][ny]);
+                    swap(index[x][y], index[nx][ny]);
+                    computers[k][l] = {nx, ny};
+                    field[x][y] = max(field[x][y], 0); // 移動元がマイナス（ケーブル）だった場合は 0にする
+                    moves.emplace_back(x, y, nx, ny);
+                    action_count_limit--;
+                    move_cnt++;
+                }
+            }
+        }
     }
 
     bool can_connect(int &x, int &y, int &dir) {
@@ -164,7 +213,22 @@ struct Solver {
         }
     }
 
+    void reconnect() {
+        score = 0;
+        uf = UnionFind(N, N);
+        action_count_limit += connects.size();
+        connects = vector<ConnectAction>();
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                field[i][j] = max(field[i][j], 0);
+            }
+        }
+        connect();
+    }
+
     int solve() {
+        move(6 + engine() % 5);
+        reconnect();
         return score;
     }
 };
