@@ -11,43 +11,73 @@ struct Timer {
 };
 
 struct UnionFind {
-    map<pair<int,int>, pair<int, int>> parent;
-    map<pair<int,int>, int> size;
-    UnionFind() :parent() {}
+    int h, w;
+    int N;
+    vector<int> parent;
+    vector<int> size;
+    UnionFind(int h, int w) : h(h), w(w) {
+        N = h * w;
+        parent.resize(N);
+        size.resize(N);
+        for (int i = 0; i < N; i++) {
+            parent[i] = i;
+            size[i] = 1;
+        }
+    }
 
-    pair<int, int> find(pair<int, int> x) {
-        if (parent.find(x) == parent.end()) {
-            parent[x] = x;
-            size[x] = 1;
-            return x;
-        } else if (parent[x] == x) {
+    int find(int x) {
+        if (parent[x] == x) {
             return x;
         } else {
             parent[x] = find(parent[x]);
             return parent[x];
         }
     }
-
-    void unite(pair<int, int> x, pair<int, int> y) {
-        if (!same(x, y)) {
-            parent[x] = y;
-            size[y] += size[x];
-        }
+    pair<int, int> find(pair<int, int> p) {
+        int x = p.first * w + p.second;
+        x = find(x);
+        return {x / w, x % w};
     }
 
-    bool same(pair<int, int> x, pair<int, int> y) {
+    void unite(int x, int y) {
+        if (same(x, y)) return;
+        x = find(x);
+        y = find(y);
+        parent[x] = y;
+        size[y] += size[x];
+    }
+    void unite(pair<int, int> p, pair<int, int> q) {
+        int x = p.first * w + p.second;
+        int y = q.first * w + q.second;
+        unite(x, y);
+    }
+
+    bool same(int x, int y) {
         return find(x) == find(y);
+    }
+    bool same(pair<int, int> p, pair<int, int> q) {
+        int x = p.first * w + p.second;
+        int y = q.first * w + q.second;
+        return same(x, y);
+    }
+
+    int get_size(int x) {
+        return size[find(x)];
+    }
+    int get_size(pair<int, int> p) {
+        int x = p.first * w + p.second;
+        return get_size(x);
     }
 };
 
 struct MoveAction {
     int before_row, before_col, after_row, after_col;
-    MoveAction(int before_row, int before_col, int after_row, int after_col) : 
+    MoveAction(int before_row, int before_col, int after_row, int after_col) :
         before_row(before_row), before_col(before_col), after_row(after_row), after_col(after_col) {}
 };
 struct ConnectAction {
     int c1_row, c1_col, c2_row, c2_col;
-    ConnectAction(int c1_row, int c1_col, int c2_row, int c2_col) : 
+    ConnectAction(int c1_row, int c1_col, int c2_row, int c2_col) :
         c1_row(c1_row), c1_col(c1_col), c2_row(c2_row), c2_col(c2_col) {}
 };
 
@@ -68,14 +98,12 @@ struct Solver {
     mt19937 engine{rd()};
 
     Solver(int N, int K, vector<vector<int>> field) :
-        N(N), K(K), action_count_limit(K * 100), field(field) 
+        N(N), K(K), action_count_limit(K * 100), field(field), uf(UnionFind(N, N))
     {
-        // uf = UnionFind(N * N);
         score = 0;
         connect();
-        PR(score);
     }
-    
+
     bool inside (int &x, int &y) {
         return 0 <= x && x < N && 0 <= y && y < N;
     }
@@ -85,7 +113,7 @@ struct Solver {
         int ny = y + dy[dir];
         while (inside(nx, ny)) {
             if (field[nx][ny] == field[x][y]) {
-                if (uf.same(pair(x, y), pair(nx, ny))) {
+                if (uf.same({x, y}, {nx, ny})) {
                     return false;
                 } else {
                     return true;
@@ -104,7 +132,7 @@ struct Solver {
         while (inside(nx, ny)) {
             if (field[nx][ny] == field[x][y]) {
                 assert(!uf.same({x, y}, {nx, ny}));
-                score += uf.size[uf.find({x, y})] * uf.size[uf.find({nx, ny})];
+                score += uf.get_size({x, y}) * uf.get_size({nx, ny});
                 uf.unite({x, y}, {nx, ny});
                 return ConnectAction(x, y, nx, ny);
             }
@@ -172,6 +200,7 @@ void solve() {
     input(N, K, field);
 
     Solver s(N, K, field);
+    int score = s.solve();
 
     Timer timer;
 
@@ -180,9 +209,8 @@ void solve() {
     // }
 
     print_answer(s);
-    PR(s.score);
 }
 
 int main(){
     solve();
-} 
+}
