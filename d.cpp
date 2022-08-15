@@ -2,7 +2,7 @@
 using namespace std;
 #define PR(x) cerr << #x << " = " << x << endl
 
-const double TIME_LIMIT = 2.9;
+const double TIME_LIMIT = 2.85;
 struct Timer {
     clock_t start;
     Timer() { reset(); }
@@ -201,19 +201,21 @@ struct Solver {
         assert(false);
     }
     void connect() {
-        for (int k = 1; k <= K; k++) {
-            for (int i = 0; i < N; i++) {
-                for (int j = 0; j < N; j++) {
-                    if (field[i][j] != k) {
-                        continue;
-                    }
-                    for (int dir = 0; dir < 2; dir++) { // ↓ と → の2方向を見る
-                        if (can_connect(i, j, dir)) {
-                            connects.push_back(line_fill(i, j, dir));
-                            action_count_limit--;
-                            if (action_count_limit <= 0) {
-                                return;
-                            }
+        vector<int> perm(100);
+        for (int i = 0; i < 100; i++) {
+            perm[i] = i;
+        }
+        for (int k = 0; k < K; k++) {
+            shuffle(perm.begin(), perm.end(), engine);
+            for (int i = 0; i < 100; i++) {
+                int x = computers[k][perm[i]].first;
+                int y = computers[k][perm[i]].second;
+                for (int dir = 0; dir < 4; dir++) {
+                    if (can_connect(x, y, dir)) {
+                        connects.push_back(line_fill(x, y, dir));
+                        action_count_limit--;
+                        if (action_count_limit <= 0) {
+                            return;
                         }
                     }
                 }
@@ -245,7 +247,7 @@ struct Solver {
             vector<vector<pair<int, int>>> backup_computers = computers;
             vector<vector<int>> backup_index = index;
 
-            move(min(5 + engine() % (K * 5), action_count_limit - 2));
+            move(min(5 + (int)engine() % (K * 5), action_count_limit - 2));
             reconnect();
 
             if (score < pre_score) {
