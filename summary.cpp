@@ -2,23 +2,33 @@
 using namespace std;
 using ll = long long;
 #define rep(i,n) for (int i = 0; i < (n); ++i)
+#define PR(x) cerr << #x << " = " << x << endl
 
 int main() {
-    int N;
-    cin >> N;
-    int score;
-    vector<vector<int>> kind(4, vector<int>(2, 0));
-    rep(i,N) {
-        int K = i % 4;
+    int n;
+    cin >> n;
+    int score = 0;
+    int sum[10][50];
+    int cnt[10][50];
+    rep(i,n) {
+        int N, K;
+        cin >> N >> K;
         string a, b;
         int x;
         cin >> a >> b >> x;
+
         score += x;
-        kind[K][0]++;
-        kind[K][1] += x;
+        sum[K][0] += x;
+        cnt[K][0] += 1;
+        sum[K][N] += x;
+        cnt[K][N] += 1;
     }
-    rep(k,4) {
-        cout << "K = " << k + 2 << " : " << kind[k][1] / kind[k][0] << endl;
+    for (int K = 2; K <= 5; K++) {
+        cout << "K = " << K << " : " << sum[K][0] / cnt[K][0] << " (" << cnt[K][0] << ")" << endl;
+        for (int N = K * 3 + 9; N <= K * 3 + 33; N++) {
+            if (cnt[K][N] > 0) cout << "   " << N << " : " << sum[K][N] / cnt[K][N] << " (" << cnt[K][N] << ")" << endl;
+        }
+        cout << endl;
     }
-    cout << "total : " << score / N << " (" << score * 50 / N << ")" << endl;
+    cout << "total : " << score / n << " (" << score * 50 / n << ")" << endl << endl;
 }
