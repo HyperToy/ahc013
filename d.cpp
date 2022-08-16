@@ -2,7 +2,7 @@
 using namespace std;
 #define PR(x) cerr << #x << " = " << x << endl
 
-const double TIME_LIMIT = 2.85;
+const double TIME_LIMIT = 2.875;
 struct Timer {
     clock_t start;
     Timer() { reset(); }
@@ -126,32 +126,29 @@ struct Solver {
         }
         return false;
     }
-    void move_dfs(int x, int y, int depth, int max_depth, int px = -1, int py = -1) {
-
-    }
     void move(int move_limit = -1) {
         if (move_limit < 0) {
             move_limit = K * 50;
         }
         int move_cnt = 0;
-        while (move_cnt < move_limit) {
+        while (move_cnt < move_limit && timer.get() < TIME_LIMIT) {
             int k = engine() % K;
             int l = engine() % 100;
             int x = computers[k][l].first;
             int y = computers[k][l].second;
-            // move_dfs(x, y, 0);
             shuffle(random_dir.begin(), random_dir.end(), engine);
             for (int dir = 0; dir < 4; dir++) {
                 if (field[x][y] > 0 && can_move(x, y, random_dir[dir])) {
                     int nx = x + dx[random_dir[dir]];
                     int ny = y + dy[random_dir[dir]];
                     swap(field[x][y], field[nx][ny]);
-                    swap(index[x][y], index[nx][ny]);
+                    // swap(index[x][y], index[nx][ny]);
                     computers[k][l] = {nx, ny};
                     field[x][y] = max(field[x][y], 0); // 移動元がマイナス（ケーブル）だった場合は 0にする
                     moves.emplace_back(x, y, nx, ny);
                     action_count_limit--;
                     move_cnt++;
+                    break;
                 }
             }
         }
@@ -237,7 +234,7 @@ struct Solver {
             vector<MoveAction> backup_moves = moves;
             vector<ConnectAction> backup_connects = connects;
             vector<vector<pair<int, int>>> backup_computers = computers;
-            vector<vector<int>> backup_index = index;
+            // vector<vector<int>> backup_index = index;
 
             move(min(5 + (int)engine() % (K * 5), action_count_limit - 2));
             reconnect();
@@ -250,7 +247,7 @@ struct Solver {
                 moves = backup_moves;
                 connects = backup_connects;
                 computers = backup_computers;
-                index = backup_index;
+                // index = backup_index;
             }
         }
         return Result(score, moves, connects);
@@ -269,7 +266,7 @@ void input(int &N, int &K, vector<vector<int>> &field, vector<vector<int>> &inde
             field[i][j] = s[j] - '0';
             if (field[i][j] > 0) {
                 int k = field[i][j] - 1;
-                index[i][j] = computers[k].size();
+                // index[i][j] = computers[k].size();
                 computers[k].emplace_back(i, j);
             }
         }
