@@ -81,14 +81,12 @@ struct ConnectAction {
     ConnectAction(int c1_row, int c1_col, int c2_row, int c2_col) :
         c1_row(c1_row), c1_col(c1_col), c2_row(c2_row), c2_col(c2_col) {}
 };
-
 struct Result {
     vector<MoveAction> moves;
     vector<ConnectAction> connects;
     int score;
     Result(int score, const vector<MoveAction> &move, const vector<ConnectAction> &con) : score(score), moves(move), connects(con) {}
 };
-
 struct Solver {
     static constexpr int dx[4] = {1, 0, -1, 0};
     static constexpr int dy[4] = {0, 1, 0, -1};
@@ -107,20 +105,9 @@ struct Solver {
     random_device rd;
     mt19937 engine{rd()};
 
-    Solver(int N, int K, vector<vector<int>> field) :
-        N(N), K(K), action_count_limit(K * 100), field(field), uf(UnionFind(N, N))
+    Solver(int N, int K, vector<vector<int>> field, vector<vector<int>> index, vector<vector<pair<int, int>>> computers) :
+        N(N), K(K), action_count_limit(K * 100), field(field), index(index), computers(computers), uf(UnionFind(N, N))
     {
-        computers.resize(K);
-        index = vector<vector<int>>(N, vector<int>(N, -1));
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                if (field[i][j] > 0) {
-                    int k = field[i][j] - 1;
-                    index[i][j] = computers[k].size();
-                    computers[k].emplace_back(i, j);
-                }
-            }
-        }
         score = 0;
         connect();
     }
@@ -265,18 +252,24 @@ struct Solver {
     }
 };
 
-void input(int &N, int &K, vector<vector<int>> &field) {
+void input(int &N, int &K, vector<vector<int>> &field, vector<vector<int>> &index, vector<vector<pair<int, int>>> &computers) {
     cin >> N >> K;
     field.resize(N, vector<int>(N));
+    index.resize(N, vector<int>(N));
+    computers.resize(K);
     for (int i = 0; i < N; i++) {
         string s;
         cin >> s;
         for (int j = 0; j < N; j++) {
             field[i][j] = s[j] - '0';
+            if (field[i][j] > 0) {
+                int k = field[i][j] - 1;
+                index[i][j] = computers[k].size();
+                computers[k].emplace_back(i, j);
+            }
         }
     }
 }
-
 void print_answer(Result &res) {
     cout << res.moves.size() << endl;
     for (MoveAction m : res.moves) {
@@ -293,9 +286,11 @@ void print_answer(Result &res) {
 void solve() {
     int N, K;
     vector<vector<int>> field;
-    input(N, K, field);
+    vector<vector<pair<int, int>>> computers;
+    vector<vector<int>> index;
+    input(N, K, field, index, computers);
 
-    Solver best_sol(N, K, field);
+    Solver best_sol(N, K, field, index, computers);
     Result best_res = best_sol.solve();
 
     timer.reset();
@@ -303,7 +298,7 @@ void solve() {
     int update_count = 0;
     while (timer.get() < TIME_LIMIT) {
         loop_count++;
-        Solver sol(N, K, field);
+        Solver sol(N, K, field, index, computers);
         Result res = sol.solve();
         if (res.score > best_res.score) {
             update_count++;
