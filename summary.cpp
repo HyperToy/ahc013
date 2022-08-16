@@ -8,8 +8,8 @@ int main() {
     int n;
     cin >> n;
     int score = 0;
-    int sum[10][50];
-    int cnt[10][50];
+    vector<vector<int>> sum(10, vector<int>(50, 0));
+    vector<vector<int>> cnt(10, vector<int>(50, 0));
     rep(i,n) {
         int N, K;
         cin >> N >> K;
