@@ -90,6 +90,7 @@ struct Result {
 struct Solver {
     static constexpr int dx[4] = {1, 0, -1, 0};
     static constexpr int dy[4] = {0, 1, 0, -1};
+    vector<int> random_dir = {0, 1, 2, 3};
 
     int N, K;
     int action_count_limit;
@@ -109,6 +110,7 @@ struct Solver {
         N(N), K(K), action_count_limit(K * 100), field(field), index(index), computers(computers), uf(UnionFind(N, N))
     {
         score = 0;
+        move(K * 5);
         connect();
     }
 
@@ -124,17 +126,20 @@ struct Solver {
         }
         return false;
     }
+    void move_dfs(int x, int y, int depth, int max_depth, int px = -1, int py = -1) {
+
+    }
     void move(int move_limit = -1) {
         if (move_limit < 0) {
             move_limit = K * 50;
         }
-        vector<int> random_dir = {0, 1, 2, 3};
         int move_cnt = 0;
         while (move_cnt < move_limit) {
             int k = engine() % K;
             int l = engine() % 100;
             int x = computers[k][l].first;
             int y = computers[k][l].second;
+            // move_dfs(x, y, 0);
             shuffle(random_dir.begin(), random_dir.end(), engine);
             for (int dir = 0; dir < 4; dir++) {
                 if (field[x][y] > 0 && can_move(x, y, random_dir[dir])) {
