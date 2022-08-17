@@ -2,7 +2,7 @@
 using namespace std;
 #define PR(x) cerr << #x << " = " << x << endl
 
-const double TIME_LIMIT = 2.875;
+const double TIME_LIMIT = 2.8;
 struct Timer {
     clock_t start;
     Timer() { reset(); }
@@ -236,7 +236,8 @@ struct Solver {
             vector<vector<pair<int, int>>> backup_computers = computers;
             // vector<vector<int>> backup_index = index;
 
-            move(min(5 + (int)engine() % (K * 5), action_count_limit - 2));
+            // move(min(5 + (int)engine() % (K * 5), action_count_limit - 2));
+            move(1);
             reconnect();
 
             if (score < pre_score) {
@@ -286,6 +287,7 @@ void print_answer(Result &res) {
 }
 
 void solve() {
+    timer.reset();
     int N, K;
     vector<vector<int>> field;
     vector<vector<pair<int, int>>> computers;
@@ -295,7 +297,6 @@ void solve() {
     Solver best_sol(N, K, field, index, computers);
     Result best_res = best_sol.solve();
 
-    timer.reset();
     int loop_count = 0;
     int update_count = 0;
     while (timer.get() < TIME_LIMIT) {
