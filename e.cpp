@@ -1,3 +1,6 @@
+/**
+ * 1種類だけを格子状に集めようとしてボツ
+ */
 #include <bits/stdc++.h>
 using namespace std;
 #define PR(x) cerr << #x << " = " << x << endl
