@@ -9,7 +9,7 @@ x=`expr $2 - 1`
 
 for i in `seq -f '%04g' 0 $x`
 do
-    cd /Users/nodaryohey/Documents/1_kyoPro/1_AtCoder/4AHC/013
+    cd ..
     echo $i
     ./$1 < tools/in/$i.txt > tools/out/$i.txt
     cd tools
